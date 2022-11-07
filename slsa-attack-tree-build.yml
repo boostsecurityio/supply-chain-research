@@ -1,0 +1,136 @@
+title: Software Supply Chain Attack Tree - Continuous Integration System
+
+facts:
+- uses_gha: Uses GitHub Actions
+  from:
+  - reality
+- public_repo: Public repository
+  from:
+  - uses_gha
+- private_repo: Private repository
+  from:
+  - uses_gha
+- gha_on_pull_request_from_fork: 'pull_request event (From fork)'
+  from:
+  - public_repo
+- gha_on_pull_request_target_from_fork: 'pull_request_target event (From fork)'
+  from:
+  - public_repo
+- gha_on_pull_request_from_branch: 'pull_request event'
+  from:
+  - private_repo
+- repo_has_no_branch_protection: No Branch Protection
+  from:
+  - gha_on_pull_request_from_branch
+- repo_has_sufficient_branch_protection: Sufficient Branch Protection
+  from:
+  - gha_on_pull_request_from_branch
+- has_perm_to_create_new_repo: Has permission to create new repository
+  from:
+  - uses_gha
+- gha_use_self_hosted_runner: Use self-hosted runner
+  from:
+  - gha_injection_vuln
+  - gha_dangerous_pr_target
+
+attacks:
+- extract_sensitive_tokens_from_actions_logs:
+  from:
+  - public_repo
+- gha_injection_vuln: Exploit injection vulnerability
+  from:
+  - gha_on_pull_request_target_from_fork
+- gha_dangerous_pr_target: Abuse GITHUB_TOKEN privileges and secrets
+  from:
+  - gha_on_pull_request_target_from_fork
+- convince_maintainer: Convince maintainer to accept pipeline changes
+  from:
+  - repo_has_sufficient_branch_protection
+  - gha_on_pull_request_from_fork
+- poison_cache: Poison the build cache
+  from:
+  - repo_has_sufficient_branch_protection
+- exfil_repo_secrets: Exfiltrate repo-level secrets
+  from:
+  - repo_has_sufficient_branch_protection
+- exfil_org_secrets: Exiltrate org-level secrets
+  from:
+  - create_new_repo
+- exfil_pat: Exfiltrate PAT
+  from:
+  - repo_has_sufficient_branch_protection
+- create_new_repo: Create new repository
+  from:
+  - has_perm_to_create_new_repo
+- self_approve_pr: Workflow self-approves PR
+  from:
+  - repo_has_sufficient_branch_protection
+
+mitigations:
+- limit_workflow_perms: Limit workflow permissions
+  from:
+  - self_approve_pr
+- two_person_review: Two-person review 
+  from:
+  - convince_maintainer
+- gha_use_env_prot_rule: Use Environment Protection Rule
+  from:
+  - exfil_repo_secrets
+- gha_use_oidc_with_branch_filter: Use OIDC with 'sub' branch filter
+  from:
+  - exfil_repo_secrets
+- gha_sast_detects_injection: Use SAST to detect injection
+  from:
+  - gha_injection_vuln
+- gha_drop_privs: Use Least Privileged permissions
+  from:
+  - gha_dangerous_pr_target
+- avoid_risky_pr_target_checkout: Avoid risky PR target code checkout
+  from:
+  - gha_dangerous_pr_target
+- avoid_using_cache_in_sensitive_workflows: Avoid using cache in sensitive workflows
+  from:
+  - poison_cache
+- avoid_sensitive_org_secrets: Avoid storing sensitive org-level secrets
+  from:
+  - exfil_org_secrets
+- limit_default_org_member_privileges: Limit default Org. member privileges
+  from:
+  - has_perm_to_create_new_repo
+- gha_limit_allowed_actions: Set policy to limit allowed actions
+  from:
+  - convince_maintainer
+- use_fined_grained_pats: Use fine-grained PATs
+  from:
+  - exfil_pat
+- mask_dynamic_secrets: Mask dynamic secrets in logs
+  from:
+  - extract_sensitive_tokens_from_actions_logs
+
+goals:
+- pwn_self_hosted_runner: Compromise self-hosted runner
+  from:
+  - gha_use_self_hosted_runner
+- pwn_build_artifact: Compromise Build artifact
+  from:
+  - self_approve_pr
+  - convince_maintainer
+  - gha_injection_vuln
+  - gha_dangerous_pr_target
+  - exfil_repo_secrets
+  - exfil_org_secrets
+  - poison_cache
+  - repo_has_no_branch_protection
+- pivot: Pivot to other resources
+  from:
+  - exfil_repo_secrets
+  - exfil_org_secrets
+  - exfil_pat
+  - extract_sensitive_tokens_from_actions_logs
+
+
+filter: # Using the fiter is useful to generate narrowly focused tree
+# - pwn_build_artifact
+# - pwn_self_hosted_runner
+# - pivot
+
