@@ -37,7 +37,7 @@ attacks:
   - gha_on_pull_request_from_fork
 - gha_injection_vuln: Exploit injection vulnerability
   from:
-  - use_sast
+  - use_sast_to_detection_injection
 - gha_dangerous_pr_target: Exploit using elevated GITHUB_TOKEN privileges
   from:
   - avoid_risky_pr_target_checkout
@@ -65,7 +65,7 @@ mitigations:
 - gha_use_oidc_with_branch_filter: Use OIDC with 'sub' branch filter
   from:
   - repo_has_sufficient_branch_protection
-- use_sast: Use SAST
+- use_sast_to_detection_injection: Use SAST to detect injection
   from:
   - gha_on_pull_request_from_fork
 - avoid_risky_pr_target_checkout: Avoid risky PR target code checkout
