@@ -31,16 +31,19 @@ facts:
 
 
 attacks:
+- gha_injection_vuln: Exploit injection vulnerability
+  from:
+  - gha_on_pull_request_target_from_fork
+- gha_dangerous_pr_target: Exploit using elevated GITHUB_TOKEN privileges
+  from:
+  - gha_on_pull_request_target_from_fork
 - convince_maintainer: Convince maintainer to accept pipeline changes
   from:
   - repo_has_sufficient_branch_protection
   - gha_on_pull_request_from_fork
-- gha_injection_vuln: Exploit injection vulnerability
+- poison_cache: Poison the build cache
   from:
-  - use_sast_to_detection_injection
-- gha_dangerous_pr_target: Exploit using elevated GITHUB_TOKEN privileges
-  from:
-  - avoid_risky_pr_target_checkout
+  - repo_has_sufficient_branch_protection
 - exfil_repo_secrets: Exfiltrate repo-level secrets
   from:
   - repo_has_sufficient_branch_protection
@@ -50,30 +53,34 @@ attacks:
 - exfil_pat: Exfiltrate PAT
   from:
   - repo_has_sufficient_branch_protection
-- poison_cache: Poison the build cache
-  from:
-  - use_cache_isolation
 - create_new_repo: Create new repository
   from:
   - has_perm_to_create_new_repo
 
 
+
 mitigations:
+- two_person_review: Two-person review 
+  from:
+  - convince_maintainer
 - gha_use_env_prot_rule: Use Environment Protection Rule
   from:
-  - repo_has_sufficient_branch_protection
+  - exfil_repo_secrets
 - gha_use_oidc_with_branch_filter: Use OIDC with 'sub' branch filter
   from:
-  - repo_has_sufficient_branch_protection
-- use_sast_to_detection_injection: Use SAST to detect injection
+  - exfil_repo_secrets
+- gha_sast_detects_injection: Use SAST to detect injection
   from:
-  - gha_on_pull_request_from_fork
+  - gha_injection_vuln
 - avoid_risky_pr_target_checkout: Avoid risky PR target code checkout
   from:
-  - gha_on_pull_request_target_from_fork
+  - gha_dangerous_pr_target
 - use_cache_isolation:
   from:
-  - repo_has_sufficient_branch_protection
+  - poison_cache
+- avoid_sensitive_org_secrets: Avoid storing sensitive org-level secrets
+  from:
+  - exfil_org_secrets
 
 goals:
 - pwn_build_artifact: Compromise Build artifact
@@ -84,7 +91,7 @@ goals:
   - exfil_repo_secrets
   - exfil_org_secrets
   - poison_cache
-  - repo_has_no_branch_protection: '#yolosec'
+  - repo_has_no_branch_protection
 - pivot: Pivot to other resources
   from:
   - exfil_repo_secrets
