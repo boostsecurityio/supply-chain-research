@@ -1,0 +1,96 @@
+title: Software Supply Chain Attack Tree - Continuous Integration System
+
+facts:
+- uses_gha: Uses GitHub Actions
+  from:
+  - reality
+- public_repo: Public repository
+  from:
+  - uses_gha
+- private_repo: Private repository
+  from:
+  - uses_gha
+- gha_on_pull_request_from_fork: 'pull_request event (From fork)'
+  from:
+  - public_repo
+- gha_on_pull_request_target_from_fork: 'pull_request_target event (From fork)'
+  from:
+  - public_repo
+- gha_on_pull_request_from_branch: 'pull_request event'
+  from:
+  - private_repo
+- repo_has_no_branch_protection: No Branch Protection
+  from:
+  - gha_on_pull_request_from_branch
+- repo_has_sufficient_branch_protection: Sufficient Branch Protection
+  from:
+  - gha_on_pull_request_from_branch
+- has_perm_to_create_new_repo: Has permission to create new repository
+  from:
+  - uses_gha
+
+
+attacks:
+- convince_maintainer: Convince maintainer to accept pipeline changes
+  from:
+  - repo_has_sufficient_branch_protection
+  - gha_on_pull_request_from_fork
+- gha_injection_vuln: Exploit injection vulnerability
+  from:
+  - use_sast
+- gha_dangerous_pr_target: Exploit using elevated GITHUB_TOKEN privileges
+  from:
+  - avoid_risky_pr_target_checkout
+- exfil_repo_secrets: Exfiltrate repo-level secrets
+  from:
+  - repo_has_sufficient_branch_protection
+- exfil_org_secrets: Exiltrate org-level secrets
+  from:
+  - create_new_repo
+- exfil_pat: Exfiltrate PAT
+  from:
+  - repo_has_sufficient_branch_protection
+- poison_cache: Poison the build cache
+  from:
+  - use_cache_isolation
+- create_new_repo: Create new repository
+  from:
+  - has_perm_to_create_new_repo
+
+
+mitigations:
+- gha_use_env_prot_rule: Use Environment Protection Rule
+  from:
+  - repo_has_sufficient_branch_protection
+- gha_use_oidc_with_branch_filter: Use OIDC with 'sub' branch filter
+  from:
+  - repo_has_sufficient_branch_protection
+- use_sast: Use SAST
+  from:
+  - gha_on_pull_request_from_fork
+- avoid_risky_pr_target_checkout: Avoid risky PR target code checkout
+  from:
+  - gha_on_pull_request_target_from_fork
+- use_cache_isolation:
+  from:
+  - repo_has_sufficient_branch_protection
+
+goals:
+- pwn_build_artifact: Compromise Build artifact
+  from:
+  - convince_maintainer
+  - gha_injection_vuln
+  - gha_dangerous_pr_target
+  - exfil_repo_secrets
+  - exfil_org_secrets
+  - poison_cache
+  - repo_has_no_branch_protection: '#yolosec'
+- pivot: Pivot to other resources
+  from:
+  - exfil_repo_secrets
+  - exfil_org_secrets
+  - exfil_pat
+
+
+filter:
+
