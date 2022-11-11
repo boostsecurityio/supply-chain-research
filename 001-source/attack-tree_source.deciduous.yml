@@ -173,3 +173,15 @@ filter: # Using the fiter is useful to generate narrowly focused tree
 # - victim_is_repo_admin
 # - victim_is_GitHub_App_Manager
 # - victim_is_org_owner
+## By attacks
+# - forge_second_valid_identity
+# - abuse_Github_Action_PR_approval_permission
+# - abuse_PR_approval_to_sneak_in_bad_code
+# - steal_SSH_key_with_repo_write_access
+# - bypass_Branch_Protection
+# - push_remote_release_tag
+# - abuse_admin_rights_and_skip_Tag_Protection
+# - abuse_admin_rights_and_disable_Branch_Protection_admin_enforcement
+# - add_evil_commits_to_good_PR_and_self_approve
+# - fool_PR_reviewer_of_huge_diff_with_evil_code
+# - fool_PR_reviewer_by_adding_evil_dependency_reference
