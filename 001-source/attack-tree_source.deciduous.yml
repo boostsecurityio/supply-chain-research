@@ -1,0 +1,172 @@
+title: Software Supply Chain Attack Tree - Source Control Management
+
+facts:
+- uses_GitHub:
+  from:
+  - reality
+- attacker_has_no_repo_access:
+  from:
+  - uses_GitHub
+- attacker_has_repo_write_access:
+  from:
+  - uses_GitHub
+  - victim_has_repo_write_access
+- attacker_has_repo_admin:
+  from:
+  - uses_GitHub
+  - victim_is_repo_admin
+  - victim_is_org_owner
+- target_branch_has_Branch_Protection:
+  from:
+  - attacker_has_repo_write_access
+- repo_has_no_Tag_Protection_Rule:
+  from:
+  - attacker_has_repo_write_access
+- victim_has_repo_write_access:
+  from:
+  - enforce_2FA
+  - only_install_necessary_and_trusted_GitHub_App
+- victim_is_repo_admin:
+  from:
+  - enforce_2FA
+  - only_install_necessary_and_trusted_GitHub_App
+- victim_is_GitHub_App_Manager:
+  from:
+  - enforce_2FA
+- victim_is_org_owner:
+  from:
+  - enforce_2FA
+  - only_install_necessary_and_trusted_GitHub_App
+- obtain_genuine_PR_approval_with_initially_good_code:
+  from:
+  - target_branch_has_Branch_Protection
+- target_branch_has_no_Branch_Protection:
+  from:
+  - attacker_has_repo_write_access
+  - encrypt_SSH_private_key
+
+attacks:
+- forge_second_valid_identity: Forge 2nd valid membership with repo write access
+  from:
+  - target_branch_has_Branch_Protection
+- compromise_GitHub_App:
+  from:
+  - attacker_has_no_repo_access
+  - victim_is_GitHub_App_Manager:
+    backwards: true
+- compromise_org_member_account:
+  from:
+  - attacker_has_no_repo_access
+- steal_SSH_key_with_repo_write_access: Steal SSH key with write access (user or Deploy Key)
+  from:
+  - attacker_has_no_repo_access
+- abuse_Github_Action_PR_approval_permission:
+  from:
+  - target_branch_has_Branch_Protection
+- get_enough_fake_PR_approvals:
+  from:
+  - allow_one_membership_per_identity
+  - disable_GitHub_Actions_PR_approval_permission
+- abuse_PR_approval_to_sneak_in_bad_code:
+  from:
+  - obtain_genuine_PR_approval_with_initially_good_code
+- bypass_Branch_Protection:
+  from:
+  - attacker_has_repo_admin
+- push_remote_release_tag:
+  from:
+  - repo_has_no_Tag_Protection_Rule
+- abuse_admin_rights_and_skip_Tag_Protection:
+  from:
+  - attacker_has_repo_admin
+- abuse_admin_rights_and_disable_Branch_Protection_admin_enforcement:
+  from:
+  - enforce_branch_protection_for_admins
+- add_evil_commits_to_good_PR_and_self_approve:
+  from:
+  - target_branch_has_Branch_Protection
+- fool_PR_reviewer_of_huge_diff_with_evil_code: Fool PR reviewer of huge diff with evil code (LGTM)
+  from:
+  - target_branch_has_Branch_Protection
+- fool_PR_reviewer_by_adding_evil_dependency_reference:
+  from:
+  - target_branch_has_Branch_Protection
+  
+
+mitigations:
+# - require_commit_signature:
+#   from:
+#   - compromise_org_member_account
+- encrypt_SSH_private_key:
+  from:
+  - steal_SSH_key_with_repo_write_access
+- allow_one_membership_per_identity:
+  from:
+  - forge_second_valid_identity
+- dismiss_stale_PR_approvals:
+  from:
+  - abuse_PR_approval_to_sneak_in_bad_code
+- require_Last_Push_Approval_branch_protection:
+  from:
+  - add_evil_commits_to_good_PR_and_self_approve
+- disable_GitHub_Actions_PR_approval_permission:
+  from:
+  - abuse_Github_Action_PR_approval_permission
+- require_two_person_review: Require two-person review
+  from:
+  - get_enough_fake_PR_approvals
+- setup_Tag_Protection_Rule:
+  from:
+  - push_remote_release_tag
+- enforce_branch_protection_for_admins:
+  from:
+  - bypass_Branch_Protection
+- setup_robust_branch_protection:
+  from:
+  - target_branch_has_no_Branch_Protection
+- manage_org_and_repo_settings_as_code:
+  from:
+  - abuse_admin_rights_and_disable_Branch_Protection_admin_enforcement
+  - abuse_admin_rights_and_skip_Tag_Protection
+- only_accept_PR_with_small_changes_and_review_carefully:
+  from:
+  - fool_PR_reviewer_of_huge_diff_with_evil_code
+- only_accept_trusted_dependencies:
+  from:
+  - fool_PR_reviewer_by_adding_evil_dependency_reference
+- only_install_necessary_and_trusted_GitHub_App:
+  from:
+  - compromise_GitHub_App
+- enforce_2FA:
+  from:
+  - compromise_org_member_account
+
+goals:
+- submit_malicious_code:
+  from:
+  - setup_robust_branch_protection
+  - require_Last_Push_Approval_branch_protection
+  - require_two_person_review
+  - manage_org_and_repo_settings_as_code
+  - dismiss_stale_PR_approvals
+  - only_accept_PR_with_small_changes_and_review_carefully
+  - only_accept_trusted_dependencies
+- rewrite_code_history: Rewrite code history (force push)
+  from:
+  - setup_robust_branch_protection
+  - manage_org_and_repo_settings_as_code
+- delete_source_code_branch:
+  from:
+  - setup_robust_branch_protection
+  - manage_org_and_repo_settings_as_code
+- modify_release_tag_to_point_vulnerable_commit:
+  from:
+  - manage_org_and_repo_settings_as_code
+  - setup_Tag_Protection_Rule
+
+
+filter: # Using the fiter is useful to generate narrowly focused tree
+# - submit_malicious_code
+# - rewrite_code_history
+# - delete_source_code_branch
+# - modify_release_tag_to_point_vulnerable_commit
