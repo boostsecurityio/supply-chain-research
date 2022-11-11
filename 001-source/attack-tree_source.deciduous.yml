@@ -94,9 +94,6 @@ attacks:
   
 
 mitigations:
-# - require_commit_signature:
-#   from:
-#   - compromise_org_member_account
 - encrypt_SSH_private_key:
   from:
   - steal_SSH_key_with_repo_write_access
@@ -142,6 +139,14 @@ mitigations:
   - compromise_org_member_account
 
 goals:
+- modify_release_tag_to_point_vulnerable_commit:
+  from:
+  - manage_org_and_repo_settings_as_code
+  - setup_Tag_Protection_Rule
+- remove_malicious_code: Delete malicious code from history (i.e. force push or delete branch)
+  from:
+  - setup_robust_branch_protection
+  - manage_org_and_repo_settings_as_code
 - submit_malicious_code:
   from:
   - setup_robust_branch_protection
@@ -151,22 +156,20 @@ goals:
   - dismiss_stale_PR_approvals
   - only_accept_PR_with_small_changes_and_review_carefully
   - only_accept_trusted_dependencies
-- rewrite_code_history: Rewrite code history (force push)
-  from:
-  - setup_robust_branch_protection
-  - manage_org_and_repo_settings_as_code
-- delete_source_code_branch:
-  from:
-  - setup_robust_branch_protection
-  - manage_org_and_repo_settings_as_code
-- modify_release_tag_to_point_vulnerable_commit:
-  from:
-  - manage_org_and_repo_settings_as_code
-  - setup_Tag_Protection_Rule
+
+
 
 
 filter: # Using the fiter is useful to generate narrowly focused tree
+## By goals
 # - submit_malicious_code
-# - rewrite_code_history
-# - delete_source_code_branch
+# - remove_malicious_code
 # - modify_release_tag_to_point_vulnerable_commit
+## By facts
+# - target_branch_has_no_Branch_Protection
+# - target_branch_has_Branch_Protection
+# - repo_has_no_Tag_Protection_Rule
+# - victim_has_repo_write_access
+# - victim_is_repo_admin
+# - victim_is_GitHub_App_Manager
+# - victim_is_org_owner
