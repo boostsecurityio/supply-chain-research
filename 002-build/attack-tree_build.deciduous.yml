@@ -113,24 +113,27 @@ goals:
   - gha_use_self_hosted_runner
 - pwn_build_artifact: Compromise Build artifact
   from:
-  - self_approve_pr
-  - convince_maintainer
-  - gha_injection_vuln
-  - gha_dangerous_pr_target
-  - exfil_repo_secrets
-  - exfil_org_secrets
-  - poison_cache
+  - limit_workflow_perms
+  - two_person_review
+  - gha_limit_allowed_actions
+  - gha_sast_detects_injection
+  - gha_drop_privs
+  - avoid_risky_pr_target_checkout
+  - gha_use_env_prot_rule
+  - gha_use_oidc_with_branch_filter
+  - avoid_sensitive_org_secrets
+  - avoid_using_cache_in_sensitive_workflows
   - repo_has_no_branch_protection
 - pivot: Pivot to other resources
   from:
-  - exfil_repo_secrets
-  - exfil_org_secrets
-  - exfil_pat
-  - extract_sensitive_tokens_from_actions_logs
+  - gha_use_env_prot_rule
+  - gha_use_oidc_with_branch_filter
+  - avoid_sensitive_org_secrets
+  - use_fined_grained_pats
+  - mask_dynamic_secrets
 
 
 filter: # Using the fiter is useful to generate narrowly focused tree
 # - pwn_build_artifact
 # - pwn_self_hosted_runner
 # - pivot
-
