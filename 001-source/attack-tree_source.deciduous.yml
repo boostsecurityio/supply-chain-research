@@ -125,10 +125,13 @@ mitigations:
   from:
   - abuse_admin_rights_and_disable_Branch_Protection_admin_enforcement
   - abuse_admin_rights_and_skip_Tag_Protection
+- SAST_and_YARA_rules_to_find_IoC_(dangerous_code):
+  from:
+  - fool_PR_reviewer_of_huge_diff_with_evil_code
 - only_accept_PR_with_small_changes_and_review_carefully:
   from:
   - fool_PR_reviewer_of_huge_diff_with_evil_code
-- only_accept_trusted_dependencies:
+- only_accept_trusted_dependencies_(implement SCA):
   from:
   - fool_PR_reviewer_by_adding_evil_dependency_reference
 - only_install_necessary_and_trusted_GitHub_App:
@@ -139,6 +142,9 @@ mitigations:
   - compromise_org_member_account
 
 goals:
+- remove_repo:
+  from:
+  - attacker_has_repo_admin
 - modify_release_tag_to_point_vulnerable_commit:
   from:
   - manage_org_and_repo_settings_as_code
@@ -152,10 +158,11 @@ goals:
   - setup_robust_branch_protection
   - require_Last_Push_Approval_branch_protection
   - require_two_person_review
+  - SAST_and_YARA_rules_to_find_IoC_(dangerous_code)
   - manage_org_and_repo_settings_as_code
   - dismiss_stale_PR_approvals
   - only_accept_PR_with_small_changes_and_review_carefully
-  - only_accept_trusted_dependencies
+  - only_accept_trusted_dependencies_(implement SCA)
 
 
 
