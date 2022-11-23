@@ -131,6 +131,8 @@ goals:
   - avoid_sensitive_org_secrets
   - avoid_using_cache_in_sensitive_workflows
   - repo_has_no_branch_protection
+- delete_Build_pipeline:
+- delete_Pipeline_history: 
 
 
 filter: # Using the fiter is useful to generate narrowly focused tree
