@@ -62,7 +62,7 @@ attacks:
 - create_new_repo: Create new repository
   from:
   - has_perm_to_create_new_repo
-- exfil_org_secrets: Exiltrate org secrets
+- exfil_org_secrets: Exfiltrate org secrets
   from:
   - limit_default_org_member_privileges
 
