@@ -11,6 +11,7 @@ facts:
   from:
   - uses_GitHub
   - victim_has_repo_write_access
+  - Other_elavation
 - attacker_has_repo_admin:
   from:
   - uses_GitHub
@@ -26,6 +27,13 @@ facts:
   from:
   - enforce_2FA
   - only_install_necessary_and_trusted_GitHub_App
+- victim_has_reviewer_access:
+  from:
+  - enforce_2FA
+  - only_install_necessary_and_trusted_GitHub_App
+- Attacker_has_reviewer_access:
+  from:
+  - Other_elavation
 - victim_is_repo_admin:
   from:
   - enforce_2FA
@@ -44,6 +52,13 @@ facts:
   from:
   - attacker_has_repo_write_access
   - encrypt_SSH_private_key
+- Attacker_can_elevate_permissions:
+  from:
+  - attacker_has_repo_admin
+- Attacker_has_other_compromised_account_with_low_rights:
+  from:
+  - Attacker_can_elevate_permissions
+
 
 attacks:
 - forge_second_valid_identity: Forge 2nd valid membership with repo write access
@@ -76,6 +91,11 @@ attacks:
 - push_remote_release_tag:
   from:
   - repo_has_no_Tag_Protection_Rule
+- Approve_malicious_PR_from_another_compromised_account:
+  from:
+  - victim_has_reviewer_access
+  - target_branch_has_Branch_Protection
+  - Attacker_has_reviewer_access
 - abuse_admin_rights_and_skip_Tag_Protection:
   from:
   - attacker_has_repo_admin
@@ -91,7 +111,13 @@ attacks:
 - fool_PR_reviewer_by_adding_evil_dependency_reference:
   from:
   - target_branch_has_Branch_Protection
-  
+- Elevate_to_repo_deleting_rights:
+  from:
+  - Attacker_has_other_compromised_account_with_low_rights
+- Other_elavation:
+  from:
+  - Attacker_has_other_compromised_account_with_low_rights
+
 
 mitigations:
 - encrypt_SSH_private_key:
@@ -112,6 +138,11 @@ mitigations:
 - require_two_person_review: Require two-person review
   from:
   - get_enough_fake_PR_approvals
+  - Approve_malicious_PR_from_another_compromised_account
+- require_security_champion_review: Require review by a Security champion or Information security officer
+  from:
+  - get_enough_fake_PR_approvals
+  - Approve_malicious_PR_from_another_compromised_account
 - setup_Tag_Protection_Rule:
   from:
   - push_remote_release_tag
@@ -131,12 +162,32 @@ mitigations:
 - only_accept_trusted_dependencies:
   from:
   - fool_PR_reviewer_by_adding_evil_dependency_reference
+  - implement_SCA
+  - Implement_base_image_analysis
+- implement_SCA:
+  from:
+  - fool_PR_reviewer_by_adding_evil_dependency_reference
+- Implement_base_image_analysis:
+  from:
+  - fool_PR_reviewer_by_adding_evil_dependency_reference
 - only_install_necessary_and_trusted_GitHub_App:
   from:
   - compromise_GitHub_App
 - enforce_2FA:
   from:
   - compromise_org_member_account
+- Monitoring_access_rights_management:
+  from:
+  - Elevate_to_repo_deleting_rights
+  - attacker_has_repo_admin
+- Repository_deletion_monitoring:
+  from:
+  - Elevate_to_repo_deleting_rights
+  - attacker_has_repo_admin
+- Periodic_backup_of_the_repository:
+  from:
+  - Elevate_to_repo_deleting_rights
+  - attacker_has_repo_admin
 
 goals:
 - modify_release_tag_to_point_vulnerable_commit:
@@ -156,8 +207,12 @@ goals:
   - dismiss_stale_PR_approvals
   - only_accept_PR_with_small_changes_and_review_carefully
   - only_accept_trusted_dependencies
-
-
+  - require_security_champion_review
+- Remove_a_repository:
+  from:
+  - Monitoring_access_rights_management
+  - Repository_deletion_monitoring
+  - Periodic_backup_of_the_repository
 
 
 filter: # Using the fiter is useful to generate narrowly focused tree
